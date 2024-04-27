@@ -1,39 +1,29 @@
 #!/usr/bin/python3
-"""Script that return info from an API"""
+"""Module to gather data from an API"""
 import requests
-from sys import argv
+import sys
 
+if __name__ == "__main__":
 
-if __name__ == '__main__':
-    """script that count amount of task completed"""
-    url_users = "https://jsonplaceholder.typicode.com/users"
-    url_todos = "https://jsonplaceholder.typicode.com/todos"
-    users_api = requests.get(url_users)
-    todos_api = requests.get(url_todos)
-    task_title = []
-    number_of_done_task = 0
-    total_number_of_tasks = 0
-    employee_name = ""
-    id_employee = int(argv[1])
+    user_id = sys.argv[1]
+    EMPLOYEE_DATA = requests.get(
+        f'https://jsonplaceholder.typicode.com/users?Id={user_id}').json()
+    todo_DATA = requests.get(
+        f'https://jsonplaceholder.typicode.com/todos?userId={user_id}').json()
 
-    if users_api.status_code == 200 and todos_api.status_code == 200:
-        users = users_api.json()
-        todos = todos_api.json()
+    NUMBER_OF_DONE_TASKS = 0
+    TOTAL_NUMBER_OF_TASKS = 0
+    EMPLOYEE_NAME = EMPLOYEE_DATA[int(user_id)-1].get("name")
 
-        for user in users:
-            if user['id'] == id_employee:
-                employee_name = user['name']
+    for tasks in todo_DATA:
+        if tasks.get("completed"):
+            NUMBER_OF_DONE_TASKS += 1
+        TOTAL_NUMBER_OF_TASKS += 1
 
-                for task in todos:
-                    if task['userId'] == id_employee:
-                        total_number_of_tasks += 1
-                        if task['completed'] is True:
-                            number_of_done_task += 1
-                            task_title.append(task['title'])
-
-        print("Employee {} is done with task({}/{}):"
-              .format(employee_name, number_of_done_task,
-                      total_number_of_tasks))
-
-        for task_printed in task_title:
-            print(f"\t {task_printed}")
+    print(
+        'Employee {} is done with tasks({}/{}):'
+        .format(EMPLOYEE_NAME, NUMBER_OF_DONE_TASKS, TOTAL_NUMBER_OF_TASKS))
+    for tasks in todo_DATA:
+        TASK_TITLE = tasks.get("title")
+        if tasks.get("completed"):
+            print(f'\t {TASK_TITLE}')
